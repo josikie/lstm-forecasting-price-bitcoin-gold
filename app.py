@@ -19,10 +19,8 @@ def muat_aset_model():
         gold_scaler = pickle.load(f)
     return btc_model, gold_model, btc_scaler, gold_scaler
 
-try:
-    btc_model, gold_model, btc_scaler, gold_scaler = muat_aset_model()
-except Exception as e:
-    st.error("Sistem sedang bersiap memuat file pendukung model...")
+
+btc_model, gold_model, btc_scaler, gold_scaler = muat_aset_model()
 # atur mode website menjadi melebar memanfaatkan semua ruang kosong dilayar
 st.set_page_config(layout="wide")
 # judul website
