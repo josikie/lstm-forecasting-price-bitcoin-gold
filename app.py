@@ -7,24 +7,20 @@ import pickle
 from keras.models import load_model
 import numpy as np
 
-## Model dan Skaler:
-# Memuat file otak pintar .h5 Bitcoin dan Emas
-btc_model = load_model('lstm_bitcoin_model.h5')
-gold_model = load_model('lstm_gold_model.h5')
-
 # 1. LOAD MODEL DAN SCALER YANG SUDAH DILATIH
 @st.cache_resource
 def muat_aset_model():
-    model_btc = load_model('lstm_bitcoin_model.h5')
-    model_gold = load_model('lstm_emas_model.h5')
+    btc_model = load_model('lstm_bitcoin_model.h5')
+    gold_model = load_model('lstm_gold_model.h5')
+
     with open('btc_scaler.pkl', 'rb') as f:
-        scaler_btc = pickle.load(f)
+        btc_scaler = pickle.load(f)
     with open('gold_scaler.pkl', 'rb') as f:
-        scaler_gold = pickle.load(f)
-    return model_btc, model_gold, scaler_btc, scaler_gold
+        gold_scaler = pickle.load(f)
+    return btc_model, gold_model, btc_scaler, gold_scaler
 
 try:
-    model_btc, model_gold, scaler_btc, scaler_gold = muat_aset_model()
+    btc_model, gold_model, btc_scaler, gold_scaler = muat_aset_model()
 except Exception as e:
     st.error("Sistem sedang bersiap memuat file pendukung model...")
 # atur mode website menjadi melebar memanfaatkan semua ruang kosong dilayar
