@@ -9,14 +9,14 @@ import numpy as np
 
 ## Model dan Skaler:
 # Memuat file otak pintar .h5 Bitcoin dan Emas
-btc_model = load_model('model_lstm_bitcoin.h5')
-gold_model = load_model('model_lstm_emas.h5')
+btc_model = load_model('lstm_bitcoin_model.h5')
+gold_model = load_model('lstm_gold_model.h5')
 
 # Memuat file rumus skala .pkl Bitcoin dan Emas
-with open('scaler_bitcoin.pkl', 'rb') as f:
+with open('btc_scaler.pkl', 'rb') as f:
     btc_scaler = pickle.load(f)
 
-with open('scaler_emas.pkl', 'rb') as f:
+with open('gold_scaler.pkl', 'rb') as f:
     gold_scaler = pickle.load(f)
 # atur mode website menjadi melebar memanfaatkan semua ruang kosong dilayar
 st.set_page_config(layout="wide")
