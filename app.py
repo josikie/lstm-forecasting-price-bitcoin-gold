@@ -53,8 +53,12 @@ if st.button("Jalankan Prediksi Harga Besok"):
     data_mentah = yf.download(symbol, start=start_date, end=end_date)
     
     if not data_mentah.empty:
-        # Bersihkan data (Ambil Close & Volume, lalu ffill jika ada libur)
-        df_bersih = data_mentah[['Close', 'Volume']].copy()
+        # --- TRIK SAKRAL: MENGHANCURKAN KOLOM BERTUMPUK (MULTI-INDEX) YFINANCE ---
+        df_flat = data_mentah.copy()
+        df_flat.columns = df_flat.columns.get_level_values(0)
+        
+        # Bersihkan data setelah kolomnya rata (Ambil Close & Volume, lalu ffill jika ada libur)
+        df_bersih = df_flat[['Close', 'Volume']].copy()
         df_bersih = df_bersih.ffill().bfill()
         
         # Ambil pas 30 baris terakhir untuk jendela input
@@ -65,15 +69,19 @@ if st.button("Jalankan Prediksi Harga Besok"):
         st.write("📋 **Data Historis 5 Hari Terakhir (Input Jendela Bergeser):**")
         st.dataframe(df_30hari.tail(5))
         
+        # Ekstraksi nilai ke numpy array murni
+        harga_asli = df_30hari['Close'].values.flatten()
+        volume_asli = df_30hari['Volume'].values.flatten()
+        
         # --- RUMUS MIN-MAX SCALER OTOMATIS (Substitusi Sempurna File .pkl) ---
-        min_harga = df_30hari['Close'].min()
-        max_harga = df_30hari['Close'].max()
-        min_vol = df_30hari['Volume'].min()
-        max_vol = df_30hari['Volume'].max()
+        min_harga = float(harga_asli.min())
+        max_harga = float(harga_asli.max())
+        min_vol = float(volume_asli.min())
+        max_vol = float(volume_asli.max())
         
         # Proses penciutan angka menjadi skala 0-1 murni memakai rumus matematika Min-Max Scaler asli
-        close_scaled = (df_30hari['Close'].values - min_harga) / ((max_harga - min_harga) if max_harga != min_harga else 1)
-        volume_scaled = (df_30hari['Volume'].values - min_vol) / ((max_vol - min_vol) if max_vol != min_vol else 1)
+        close_scaled = (harga_asli - min_harga) / ((max_harga - min_harga) if max_harga != min_harga else 1)
+        volume_scaled = (volume_asli - min_vol) / ((max_vol - min_vol) if max_vol != min_vol else 1)
         
         # Satukan kedua kolom menjadi matriks data berskala normalisasi
         data_scaled = np.column_stack((close_scaled, volume_scaled))
@@ -85,9 +93,8 @@ if st.button("Jalankan Prediksi Harga Besok"):
         prediksi_scaled = model_aktif.predict(X_input)
         
         # --- PROSES DENORMALISASI MANUAL (INVERSE SCALER) ---
-        # Mengembalikan angka skala desimal hasil tebakan model menjadi nominal harga mata uang asli ($)
-        harga_final_raw = prediksi_scaled * (max_harga - min_harga) + min_harga
-        harga_final = float(harga_final_raw)
+        harga_final_scaled = float(prediksi_scaled.flatten()[0])
+        harga_final = harga_final_scaled * (max_harga - min_harga) + min_harga
         
         # --- PERINTAH MENAMPILKAN OUTPUT RAMALAN FINAL ---
         st.markdown("---")
