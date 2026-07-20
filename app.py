@@ -12,12 +12,21 @@ import numpy as np
 btc_model = load_model('lstm_bitcoin_model.h5')
 gold_model = load_model('lstm_gold_model.h5')
 
-# Memuat file rumus skala .pkl Bitcoin dan Emas
-with open('btc_scaler.pkl', 'rb') as f:
-    btc_scaler = pickle.load(f)
+# 1. LOAD MODEL DAN SCALER YANG SUDAH DILATIH
+@st.cache_resource
+def muat_aset_model():
+    model_btc = load_model('model_lstm_bitcoin.h5')
+    model_gold = load_model('model_lstm_emas.h5')
+    with open('scaler_bitcoin.pkl', 'rb') as f:
+        scaler_btc = pickle.load(f)
+    with open('scaler_emas.pkl', 'rb') as f:
+        scaler_gold = pickle.load(f)
+    return model_btc, model_gold, scaler_btc, scaler_gold
 
-with open('gold_scaler.pkl', 'rb') as f:
-    gold_scaler = pickle.load(f)
+try:
+    model_btc, model_gold, scaler_btc, scaler_gold = muat_aset_model()
+except Exception as e:
+    st.error("Sistem sedang bersiap memuat file pendukung model...")
 # atur mode website menjadi melebar memanfaatkan semua ruang kosong dilayar
 st.set_page_config(layout="wide")
 # judul website
