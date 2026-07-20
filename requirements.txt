@@ -1,12 +1,13 @@
-libraries = """
+isi_belanjaan_baru = """
 streamlit
 yfinance
 pandas
 numpy
 scikit-learn
-tensorflow
-keras
+tensorflow-cpu
 """
 
 with open("requirements.txt", "w", encoding="utf-8") as f:
-    f.write(libraries.strip())
+    f.write(isi_belanjaan_baru.strip())
+
+print("🎉 File 'requirements.txt' versi ringan berhasil diperbarui!")
