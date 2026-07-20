@@ -1,13 +1,6 @@
-isi_belanjaan_baru = """
 streamlit
 yfinance
 pandas
 numpy
 scikit-learn
 tensorflow-cpu
-"""
-
-with open("requirements.txt", "w", encoding="utf-8") as f:
-    f.write(isi_belanjaan_baru.strip())
-
-print("🎉 File 'requirements.txt' versi ringan berhasil diperbarui!")
