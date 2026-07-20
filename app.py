@@ -13,3 +13,8 @@ st.info("""**INFORMASI PENELITI:**
       """)
 # tentang website
 st.write("Website ini menarik data harian terbaru perdagangan Bitcoin dan emas dari Yahoo Finance API. Data - data tersebut dipotong menggunakan teknik sliding window 30 hari kebelakang. Data yang sudah dipotong dimasukkan ke dalam model LSTM untuk memprediksi estimasi harga aset pada keesokan hari. ")
+
+# Bagian badan dashboard
+pilihan_aset = st.sidebar.selectbox("Pilih Aset:", ["Bitcoin (BTC-USD)", "Emas (GC=F)"])
+if st.button("Prediksi Harga Besok"):
+    st.info(f"Sedang menarik data real-time terbaru untuk {pilihan_aset}...")
