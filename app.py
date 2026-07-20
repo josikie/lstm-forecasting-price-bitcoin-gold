@@ -6,9 +6,9 @@ st.set_page_config(layout="wide")
 # judul website
 st.title("📈💰Dashboard Forecasting Harga Bitcoin dan Emas")
 # biodata peneliti
-st.info("""**INFORMASI PENELITI:** 
-           * Nama            : Josi Kie N.
-           * NIM             : 220401010122 
+st.info("""**INFORMASI PENELITI:**  
+           * Nama            : Josi Kie N.  
+           * NIM             : 220401010122  
            * Dosen Pembimbing: Cian Ramadhona Hassolthine, S.Kom, M.Kom
       """)
 # tentang website
