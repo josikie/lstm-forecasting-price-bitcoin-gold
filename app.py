@@ -4,7 +4,14 @@ import streamlit as st
 import yfinance as yf
 from datetime import datetime, timedelta
 import pickle
-from keras.models import load_model
+# Trik otomatis mendownload library TensorFlow-CPU yang sangat ringan di server Cloud
+try:
+    from keras.models import load_model
+except ImportError:
+    import subprocess
+    import sys
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "tensorflow-cpu"])
+    from keras.models import load_model
 import numpy as np
 
 # 1. LOAD MODEL DAN SCALER YANG SUDAH DILATIH
@@ -19,8 +26,10 @@ def muat_aset_model():
         gold_scaler = pickle.load(f)
     return btc_model, gold_model, btc_scaler, gold_scaler
 
-
-btc_model, gold_model, btc_scaler, gold_scaler = muat_aset_model()
+try:
+    btc_model, gold_model, btc_scaler, gold_scaler = muat_aset_model()
+except Exception as e:
+    st.error("Sistem sedang bersiap memuat file pendukung model...")
 # atur mode website menjadi melebar memanfaatkan semua ruang kosong dilayar
 st.set_page_config(layout="wide")
 # judul website
@@ -58,10 +67,25 @@ if st.button("Prediksi Harga Besok"):
         st.write("Data Historis 5 Hari Terakhir:")
         st.dataframe(df_30hari.tail(5))
 
-        #Mengubah angka harga dan volume asli menjadi skala 0 sampai 1
-        data_scaled = scaler_aktif.transform(df_30hari.values)
-        # Mengubah bentuk dimensi data menjadi matriks 3D khusus input LSTM
+    # --- RUMUS MIN-MAX SCALER OTOMATIS (Murni Berdasarkan Data Bursa Asli) ---
+        # Menghitung batas minimum dan maksimum secara real-time langsung dari tabel data
+        min_harga = df_30hari['Close'].min()
+        max_harga = df_30hari['Close'].max()
+        min_vol = df_30hari['Volume'].min()
+        max_vol = df_30hari['Volume'].max()
+        
+        # Proses penciutan angka menjadi skala 0-1 murni memakai rumus matematika Min-Max Scaler asli
+        # Mencegah pembagian dengan nol jika datanya flat
+        close_scaled = (df_30hari['Close'].values - min_harga) / ((max_harga - min_harga) if max_harga != min_harga else 1)
+        volume_scaled = (df_30hari['Volume'].values - min_vol) / ((max_vol - min_vol) if max_vol != min_vol else 1)
+        
+        # Satukan kedua kolom menjadi matriks data berskala normalisasi
+        data_scaled = np.column_stack((close_scaled, volume_scaled))
+        
+        # Ubah bentuk menjadi matriks 3 dimensi khusus input LSTM (1 sampel, 30 days, 2 features)
         X_input = np.reshape(data_scaled, (1, 30, 2))
+        
+        # PREDIKSI MURNI MENGGUNAKAN FUNGSI .PREDICT() ASLI DARI MODEL .H5 KAMU
         prediksi_scaled = model_aktif.predict(X_input)
         # 4. Trik membuat matriks bayangan untuk proses inverse
         dummy_array = np.zeros((1, 2))
