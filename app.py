@@ -27,8 +27,8 @@ st.write("Aplikasi ini bekerja secara dinamis menarik data perdagangan harian te
 # 1. MUAT FILE ARSITEKTUR OTAK MODEL .H5 SECARA MURNI
 @st.cache_resource
 def muat_otak_lstm():
-    model_btc = load_model('model_lstm_bitcoin.h5')
-    model_gold = load_model('model_lstm_emas.h5')
+    model_btc = load_model('lstm_bitcoin_model.h5')
+    model_gold = load_model('lstm_gold_model.h5')
     return model_btc, model_gold
 
 try:
