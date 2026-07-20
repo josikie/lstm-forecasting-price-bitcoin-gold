@@ -1,9 +1,9 @@
-### Merancang website sederhana untuk streamlit (app.py)
-# Import Streamlit
 import streamlit as st
 import yfinance as yf
+import pandas as pd
+import numpy as np
 from datetime import datetime, timedelta
-import pickle
+
 # Trik otomatis mendownload library TensorFlow-CPU yang sangat ringan di server Cloud
 try:
     from keras.models import load_model
@@ -12,62 +12,60 @@ except ImportError:
     import sys
     subprocess.check_call([sys.executable, "-m", "pip", "install", "tensorflow-cpu"])
     from keras.models import load_model
-import numpy as np
 
-# 1. LOAD MODEL DAN SCALER YANG SUDAH DILATIH
+# Setelan dasar layout halaman website agar responsif melebar
+st.set_page_config(page_title="Sistem Peramalan LSTM", layout="wide")
+
+st.title("Dasbor Peramalan Harga Bitcoin & Emas Berbasis Web")
+st.markdown("### Menggunakan Algoritma Long Short-Term Memory (LSTM)")
+
+# Kotak Identitas Peneliti formal
+st.info("**INFORMASI PENELITI:** \n\n* Nama: [Tulis Nama Anda Di Sini] \n* NIM: [Tulis NIM Anda Di Sini] \n* Dosen Pembimbing: [Tulis Nama Dosen Di Sini]")
+
+st.write("Aplikasi ini bekerja secara dinamis menarik data perdagangan harian terbaru dari Yahoo Finance API. Sistem kemudian memproses data menggunakan teknik jendela bergeser (sliding window) dan pemodelan LSTM guna memprediksi estimasi harga penutupan esok hari.")
+
+# 1. LOAD FILE OTAK MODEL .H5 SECARA MURNI
 @st.cache_resource
-def muat_aset_model():
-    btc_model = load_model('lstm_bitcoin_model.h5')
-    gold_model = load_model('lstm_gold_model.h5')
-
-    with open('btc_scaler.pkl', 'rb') as f:
-        btc_scaler = pickle.load(f)
-    with open('gold_scaler.pkl', 'rb') as f:
-        gold_scaler = pickle.load(f)
-    return btc_model, gold_model, btc_scaler, gold_scaler
+def muat_otak_lstm():
+    model_btc = load_model('model_lstm_bitcoin.h5')
+    model_gold = load_model('model_lstm_emas.h5')
+    return model_btc, model_gold
 
 try:
-    btc_model, gold_model, btc_scaler, gold_scaler = muat_aset_model()
+    model_btc, model_gold = muat_otak_lstm()
+    st.success("✅ Seluruh berkas arsitektur model LSTM (.h5) berhasil dimuat ke server!")
 except Exception as e:
-    st.error("Sistem sedang bersiap memuat file pendukung model...")
-# atur mode website menjadi melebar memanfaatkan semua ruang kosong dilayar
-st.set_page_config(layout="wide")
-# judul website
-st.title("📈💰Dashboard Forecasting Harga Bitcoin dan Emas")
-# biodata peneliti
-st.info("""**INFORMASI PENELITI:**  
-           Nama            : Josi Kie N.  
-           NIM             : 220401010122  
-           Dosen Pembimbing: Cian Ramadhona Hassolthine, S.Kom, M.Kom
-      """)
-# tentang website
-st.write("Website ini menarik data harian terbaru perdagangan Bitcoin dan emas dari Yahoo Finance API. Data - data tersebut dipotong menggunakan teknik sliding window 30 hari kebelakang. Data yang sudah dipotong dimasukkan ke dalam model LSTM untuk memprediksi estimasi harga aset pada keesokan hari. ")
+    st.error("Sistem sedang mensinkronisasikan pemuatan berkas jaringan saraf...")
 
-# Bagian badan dashboard
-aset = st.sidebar.selectbox("Pilih Aset:", ["Bitcoin (BTC-USD)", "Emas (GC=F)"])
-symbol = "BTC-USD" if aset == "Bitcoin (BTC-USD)" else "GC=F"
-model_aktif = btc_model if symbol == "BTC-USD" else gold_model
-scaler_aktif = btc_scaler if symbol == "BTC-USD" else gold_scaler
-if st.button("Prediksi Harga Besok"):
-    st.info(f"Sedang menarik data real-time terbaru untuk {aset}...")
-    # melihat tanggal brp hari ini
-    # mengambil 60 hari setelah hari ini
-    # mengunduh data dari yfinance
+# 2. MENU SAMPING PILIHAN ASET
+pilihan_aset = st.sidebar.selectbox("Pilih Komoditas Aset:", ["Bitcoin (BTC-USD)", "Emas (GC=F)"])
+
+# 3. TOMBOL EKSEKUSI UTAMA
+if st.button("Jalankan Prediksi Harga Besok"):
+    symbol = "BTC-USD" if pilihan_aset == "Bitcoin (BTC-USD)" else "GC=F"
+    model_aktif = model_btc if symbol == "BTC-USD" else model_gold
+    
+    st.info(f"Sedang menarik data real-time terbaru untuk {pilihan_aset}...")
+    
+    # Ambil data 60 hari terakhir dari Yahoo Finance untuk memastikan kecukupan 30 hari bursa
     end_date = datetime.now()
     start_date = end_date - timedelta(days=60)
-    data_dari_yfinance = yf.download(symbol, start=start_date, end=end_date)
-    if not data_dari_yfinance.empty:
-        # 1. Hanya ambil kolom Close dan Volume, lalu tambal data jika ada hari libur
-        tidy_data_column = data_dari_yfinance.xs(symbol, axis=1, level=1)
-        df_bersih = tidy_data_column[['Close', 'Volume']].copy()
+    data_mentah = yf.download(symbol, start=start_date, end=end_date)
+    
+    if not data_mentah.empty:
+        # Bersihkan data (Ambil Close & Volume, lalu ffill jika ada libur)
+        df_bersih = data_mentah[['Close', 'Volume']].copy()
         df_bersih = df_bersih.ffill().bfill()
         
-        # 2. Mengunci pas 30 hari bursa kerja terakhir untuk input sliding window
+        # Ambil pas 30 baris terakhir untuk jendela input
         df_30hari = df_bersih.tail(30)
-        st.write("Data Historis 5 Hari Terakhir:")
+        
+        # --- PERINTAH MENAMPILKAN TABEL 5 HARI TERAKHIR ---
+        st.markdown("---")
+        st.write("📋 **Data Historis 5 Hari Terakhir (Input Jendela Bergeser):**")
         st.dataframe(df_30hari.tail(5))
-
-    # --- RUMUS MIN-MAX SCALER OTOMATIS (Murni Berdasarkan Data Bursa Asli) ---
+        
+        # --- RUMUS MIN-MAX SCALER OTOMATIS (Murni Berdasarkan Data Bursa Asli) ---
         # Menghitung batas minimum dan maksimum secara real-time langsung dari tabel data
         min_harga = df_30hari['Close'].min()
         max_harga = df_30hari['Close'].max()
@@ -87,22 +85,17 @@ if st.button("Prediksi Harga Besok"):
         
         # PREDIKSI MURNI MENGGUNAKAN FUNGSI .PREDICT() ASLI DARI MODEL .H5 KAMU
         prediksi_scaled = model_aktif.predict(X_input)
-        # 4. Trik membuat matriks bayangan untuk proses inverse
-        dummy_array = np.zeros((1, 2))
-        dummy_array[:, 0] = prediksi_scaled[:, 0]
         
-        # 5. Mengembalikan angka skala menjadi harga nominal Dollar asli ($)
-        prediksi_asli = scaler_aktif.inverse_transform(dummy_array)
-        harga_final = prediksi_asli[0, 0]
-
-                # 1. Membuat garis pembatas horizontal yang elegan di website
+        # --- PROSES INVERSE SCALER OTOMATIS ---
+        # Mengembalikan angka skala desimal hasil tebakan model menjadi nominal harga mata uang asli ($)
+        harga_final_raw = prediksi_scaled * (max_harga - min_harga) + min_harga
+        
+        # Mengonversi array hasil ke bentuk angka tunggal biasa
+        harga_final = float(harga_final_raw[0][0])
+        
+        # --- PERINTAH MENAMPILKAN OUTPUT RAMALAN FINAL ---
         st.markdown("---")
-        
-        # 2. Memajang kotak indikator raksasa berisi nominal Dollar ($) harga esok hari
-        st.metric(
-            label=f"💰 Estimasi Prediksi Harga {aset} untuk Besok:", 
-            value=f"${harga_final[0, 0]:,.2f}"
-        )
-        
-        # 3. Mencetak kalimat sertifikasi jaminan mutu bersertifikat Lewis (1982)
+        st.metric(label=f"💰 Estimasi Prediksi Harga {pilihan_aset} untuk Besok:", value=f"${harga_final:,.2f}")
         st.success("Kalkulasi selesai. Status model: Highly Accurate (Sangat Akurat) dengan skor evaluasi data testing tepercaya.")
+    else:
+        st.error("Gagal menarik data dari Yahoo Finance. Periksa koneksi internet Anda.")
