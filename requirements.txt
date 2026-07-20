@@ -1,4 +1,4 @@
-library = """
+libraries = """
 streamlit
 yfinance
 pandas
@@ -7,3 +7,6 @@ scikit-learn
 tensorflow
 keras
 """
+
+with open("requirements.txt", "w", encoding="utf-8") as f:
+    f.write(libraries.strip())
