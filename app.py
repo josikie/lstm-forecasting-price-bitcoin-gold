@@ -7,9 +7,9 @@ st.set_page_config(layout="wide")
 st.title("📈💰Dashboard Forecasting Harga Bitcoin dan Emas")
 # biodata peneliti
 st.info("""**INFORMASI PENELITI:**  
-           1. Nama            : Josi Kie N.  
-           2. NIM             : 220401010122  
-           3. Dosen Pembimbing: Cian Ramadhona Hassolthine, S.Kom, M.Kom
+           Nama            : Josi Kie N.  
+           NIM             : 220401010122  
+           Dosen Pembimbing: Cian Ramadhona Hassolthine, S.Kom, M.Kom
       """)
 # tentang website
 st.write("Website ini menarik data harian terbaru perdagangan Bitcoin dan emas dari Yahoo Finance API. Data - data tersebut dipotong menggunakan teknik sliding window 30 hari kebelakang. Data yang sudah dipotong dimasukkan ke dalam model LSTM untuk memprediksi estimasi harga aset pada keesokan hari. ")
