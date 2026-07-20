@@ -15,11 +15,11 @@ gold_model = load_model('lstm_gold_model.h5')
 # 1. LOAD MODEL DAN SCALER YANG SUDAH DILATIH
 @st.cache_resource
 def muat_aset_model():
-    model_btc = load_model('model_lstm_bitcoin.h5')
-    model_gold = load_model('model_lstm_emas.h5')
-    with open('scaler_bitcoin.pkl', 'rb') as f:
+    model_btc = load_model('lstm_bitcoin_model.h5')
+    model_gold = load_model('lstm_emas_model.h5')
+    with open('btc_scaler.pkl', 'rb') as f:
         scaler_btc = pickle.load(f)
-    with open('scaler_emas.pkl', 'rb') as f:
+    with open('gold_scaler.pkl', 'rb') as f:
         scaler_gold = pickle.load(f)
     return model_btc, model_gold, scaler_btc, scaler_gold
 
