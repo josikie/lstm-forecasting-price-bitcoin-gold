@@ -1,5 +1,6 @@
-streamlit
-yfinance
+tensorflow-cpu==2.15.0
+keras==2.15.0
+streamlit>=1.30.0
+numpy<2.0.0
 pandas
-numpy
 scikit-learn
