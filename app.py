@@ -3,8 +3,8 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from keras.models import load_model
-# Trik otomatis mendownload library TensorFlow-CPU yang sangat ringan di server Cloud
+from tensorflow.keras.models import load_model# Trik otomatis 
+#  library TensorFlow-CPU yang sangat ringan di server Cloud
 # try:
     
 # except ImportError:
