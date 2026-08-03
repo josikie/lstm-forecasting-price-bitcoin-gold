@@ -3,15 +3,13 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-
+from keras.models import load_model
 # Trik otomatis mendownload library TensorFlow-CPU yang sangat ringan di server Cloud
-try:
-    from keras.models import load_model
-except ImportError:
-    import subprocess
-    import sys
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "tensorflow-cpu"])
-    from keras.models import load_model
+# try:
+    
+# except ImportError:
+
+#     from keras.models import load_model
 
 # Setelan dasar layout halaman website agar responsif melebar
 st.set_page_config(page_title="Sistem Peramalan LSTM", layout="wide")
